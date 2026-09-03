@@ -1,10 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import { MapPin, Search } from 'lucide-react'
+import { stores as allStores, categories } from '@/lib/mockData'
 
-const prisma = new PrismaClient()
-
-// Next.js 15 requires awaiting searchParams if they are dynamic
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
@@ -14,49 +11,51 @@ export default async function StoresPage({ searchParams }: Props) {
   const categoryId = typeof params.category === 'string' ? params.category : undefined
   const q = typeof params.q === 'string' ? params.q : undefined
 
-  const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' }
-  })
+  let filteredStores = allStores;
 
-  const stores = await prisma.store.findMany({
-    where: {
-      categoryId: categoryId,
-      name: { contains: q }
-    },
-    include: { category: true },
-    orderBy: { name: 'asc' }
-  })
+  if (categoryId) {
+    filteredStores = filteredStores.filter(s => s.categoryId === categoryId);
+  }
+
+  if (q) {
+    filteredStores = filteredStores.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+  }
+
+  const storesWithCategories = filteredStores.map(store => ({
+    ...store,
+    category: categories.find(c => c.id === store.categoryId)
+  }));
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="mb-12 text-center max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold text-slate-900 mb-4">Shop Directory</h1>
-        <p className="text-slate-600">Find your favorite brands, dining spots, and entertainment venues.</p>
+    <div className="container mx-auto px-4 py-16">
+      <div className="mb-16 text-center max-w-3xl mx-auto">
+        <h1 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">Shop Directory</h1>
+        <p className="text-slate-600 text-lg">Find your favorite brands, dining spots, and entertainment venues in our world-class facilities.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-12">
         {/* Sidebar / Filters */}
-        <div className="w-full md:w-64 shrink-0 space-y-8">
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4">Search</h3>
+        <div className="w-full md:w-72 shrink-0 space-y-10">
+          <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+            <h3 className="font-black text-slate-900 mb-4 text-xl">Search</h3>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Search stores..." 
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-xl text-slate-800 font-medium outline-none focus:ring-2 focus:ring-amber-500 transition-all placeholder:font-normal"
                 defaultValue={q}
               />
             </div>
           </div>
 
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4">Categories</h3>
-            <ul className="space-y-2">
+          <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+            <h3 className="font-black text-slate-900 mb-6 text-xl">Categories</h3>
+            <ul className="space-y-3">
               <li>
                 <Link 
                   href="/stores"
-                  className={`block py-1 text-sm ${!categoryId ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`}
+                  className={`block px-4 py-3 rounded-xl text-base transition-colors ${!categoryId ? 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/20' : 'text-slate-600 hover:bg-slate-50 font-medium hover:text-slate-900'}`}
                 >
                   All Stores
                 </Link>
@@ -65,7 +64,7 @@ export default async function StoresPage({ searchParams }: Props) {
                 <li key={c.id}>
                   <Link 
                     href={`/stores?category=${c.id}`}
-                    className={`block py-1 text-sm ${categoryId === c.id ? 'text-blue-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`}
+                    className={`block px-4 py-3 rounded-xl text-base transition-colors ${categoryId === c.id ? 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/20' : 'text-slate-600 hover:bg-slate-50 font-medium hover:text-slate-900'}`}
                   >
                     {c.name}
                   </Link>
@@ -77,32 +76,36 @@ export default async function StoresPage({ searchParams }: Props) {
 
         {/* Store Grid */}
         <div className="flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {stores.map((store) => (
-              <Link href={`/stores/${store.id}`} key={store.id} className="group rounded-2xl border bg-white overflow-hidden hover:shadow-xl transition-all block">
-                <div className="h-40 bg-slate-100 relative overflow-hidden">
-                  {store.logo ? (
-                    <img src={store.logo} alt={store.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {storesWithCategories.map((store) => (
+              <Link href={`/stores/${store.id}`} key={store.id} className="group rounded-[2rem] bg-white overflow-hidden hover:shadow-2xl hover:shadow-amber-500/10 transition-all block border border-slate-100 flex flex-col">
+                <div className="h-48 bg-slate-100 relative overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                  {store.image ? (
+                    <img src={store.image} alt={store.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium text-2xl">{store.name[0]}</div>
                   )}
+                  <div className="absolute bottom-4 left-4 z-20 w-12 h-12 rounded-xl bg-white p-1.5 shadow-lg">
+                    <img src={store.logo} alt={store.name} className="w-full h-full object-contain" />
+                  </div>
                 </div>
-                <div className="p-6">
-                  <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">{store.category.name}</div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{store.name}</h3>
-                  <div className="flex items-center gap-2 text-slate-500 text-sm">
-                    <MapPin className="w-4 h-4" />
-                    {store.location}
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2">{store.category?.name}</div>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">{store.name}</h3>
+                  <div className="mt-auto pt-4 flex items-center gap-2 text-slate-600 font-medium text-sm">
+                    <MapPin className="w-4 h-4 text-amber-500" />
+                    Floor {store.floor} - {store.location}
                   </div>
                 </div>
               </Link>
             ))}
           </div>
 
-          {stores.length === 0 && (
-            <div className="text-center py-24 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              <p className="text-slate-500">No stores found matching your criteria.</p>
-              <Link href="/stores" className="text-blue-600 font-medium mt-2 inline-block">Clear filters</Link>
+          {storesWithCategories.length === 0 && (
+            <div className="text-center py-32 bg-white rounded-[2rem] border border-dashed border-slate-300 shadow-sm">
+              <p className="text-slate-500 text-lg mb-4">No stores found matching your criteria.</p>
+              <Link href="/stores" className="text-white bg-slate-900 px-6 py-3 rounded-full font-bold inline-block hover:bg-slate-800 transition-colors">Clear filters</Link>
             </div>
           )}
         </div>

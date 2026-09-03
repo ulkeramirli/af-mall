@@ -1,62 +1,51 @@
-import { auth, signOut } from "@/auth"
-import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Store, Tag, Calendar, LogOut, LayoutDashboard } from "lucide-react"
+import { Store, Tag, Calendar, LayoutDashboard } from "lucide-react"
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-
-  if (!session?.user) {
-    redirect('/login')
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
-          <span className="text-white font-bold text-xl">AF Mall Admin</span>
+      <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-20 relative">
+        <div className="h-20 flex items-center px-8 border-b border-slate-800 bg-slate-950">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-black text-2xl tracking-tight">AF Mall Admin</span>
         </div>
-        <nav className="flex-1 py-6 px-4 space-y-2">
-          <Link href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
-            <LayoutDashboard className="w-5 h-5" /> Dashboard
+        <nav className="flex-1 py-8 px-4 space-y-3">
+          <Link href="/admin" className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-slate-800 hover:text-white transition-all group font-medium">
+            <LayoutDashboard className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition-colors" /> Dashboard
           </Link>
-          <Link href="/admin/stores" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
-            <Store className="w-5 h-5" /> Stores
+          <Link href="/admin/stores" className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-slate-800 hover:text-white transition-all group font-medium">
+            <Store className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition-colors" /> Stores
           </Link>
-          <Link href="/admin/categories" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
-            <Tag className="w-5 h-5" /> Categories
+          <Link href="/admin/categories" className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-slate-800 hover:text-white transition-all group font-medium">
+            <Tag className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition-colors" /> Categories
           </Link>
-          <Link href="/admin/events" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-colors">
-            <Calendar className="w-5 h-5" /> Events
+          <Link href="/admin/events" className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-slate-800 hover:text-white transition-all group font-medium">
+            <Calendar className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition-colors" /> Events
           </Link>
         </nav>
-        <div className="p-4 border-t border-slate-800">
-          <div className="mb-4 px-4">
-            <p className="text-sm text-slate-400">Logged in as</p>
-            <p className="text-white font-medium truncate">{session.user.email}</p>
+        <div className="p-6 border-t border-slate-800 bg-slate-900/50">
+          <div className="flex items-center gap-4">
+             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold">
+               A
+             </div>
+             <div>
+                <p className="text-white font-bold">Admin User</p>
+                <p className="text-xs text-slate-500 font-medium">admin@af-mall.com</p>
+             </div>
           </div>
-          <form action={async () => {
-            'use server'
-            await signOut({ redirectTo: '/login' })
-          }}>
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
-              <LogOut className="w-5 h-5" /> Sign Out
-            </button>
-          </form>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <header className="h-16 bg-white border-b flex items-center px-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-800">Control Panel</h2>
+      <main className="flex-1 overflow-auto flex flex-col bg-slate-50">
+        <header className="h-20 bg-white border-b border-slate-200 flex items-center px-10 shadow-sm z-10 shrink-0">
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Control Panel</h2>
         </header>
-        <div className="p-8">
+        <div className="p-10 flex-1 overflow-auto">
           {children}
         </div>
       </main>

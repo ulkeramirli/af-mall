@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { MapPin, Phone, Globe, ArrowLeft } from 'lucide-react'
-
-const prisma = new PrismaClient()
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { MapPin, ArrowLeft } from "lucide-react"
+import { stores as allStores, categories } from "@/lib/mockData"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -11,93 +9,66 @@ type Props = {
 
 export default async function StorePage({ params }: Props) {
   const resolvedParams = await params
-  const store = await prisma.store.findUnique({
-    where: { id: resolvedParams.id },
-    include: { category: true }
-  })
-
+  const store = allStores.find(s => s.id === resolvedParams.id);
+  
   if (!store) {
     notFound()
   }
+  
+  const category = categories.find(c => c.id === store.categoryId);
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="bg-slate-50 min-h-screen pb-24">
       {/* Header Banner */}
-      <div className="h-64 md:h-80 bg-slate-900 relative overflow-hidden">
-        {store.logo && (
+      <div className="h-80 md:h-[400px] bg-slate-900 relative overflow-hidden">
+        {store.image && (
           <>
-            <div className="absolute inset-0 bg-black/50 z-10" />
-            <img src={store.logo} alt={store.name} className="absolute inset-0 w-full h-full object-cover blur-sm opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent z-10" />
+            <img src={store.image} alt={store.name} className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" />
           </>
         )}
         <div className="container mx-auto px-4 relative z-20 h-full flex flex-col justify-end pb-12">
-          <Link href="/stores" className="text-white/80 hover:text-white flex items-center gap-2 text-sm font-medium mb-6 w-fit">
+          <Link href="/stores" className="text-white/80 hover:text-white flex items-center gap-2 text-sm font-bold mb-8 w-fit bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Directory
           </Link>
-          <div className="flex items-end gap-6">
-            <div className="w-32 h-32 bg-white rounded-2xl shadow-xl overflow-hidden shrink-0 border-4 border-white">
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-6 md:gap-8">
+            <div className="w-32 h-32 md:w-48 md:h-48 bg-white rounded-3xl shadow-2xl overflow-hidden shrink-0 p-2 md:p-4">
               {store.logo ? (
-                <img src={store.logo} alt={store.name} className="w-full h-full object-cover" />
+                <img src={store.logo} alt={store.name} className="w-full h-full object-contain" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-4xl">{store.name[0]}</div>
+                <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-6xl">{store.name[0]}</div>
               )}
             </div>
             <div className="pb-2">
-              <div className="text-blue-400 font-semibold uppercase tracking-wider text-sm mb-1">{store.category.name}</div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white">{store.name}</h1>
+              <div className="inline-block bg-amber-500 text-white font-bold uppercase tracking-widest text-xs px-3 py-1 rounded-full mb-3">{category?.name}</div>
+              <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight drop-shadow-md">{store.name}</h1>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="container mx-auto px-4 mt-16 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">About {store.name}</h2>
-            <div className="prose max-w-none text-slate-600">
-              <p className="text-lg leading-relaxed">{store.description}</p>
+            <h2 className="text-3xl font-black text-slate-900 mb-8">About {store.name}</h2>
+            <div className="prose prose-lg max-w-none text-slate-600 leading-relaxed">
+              <p>{store.description}</p>
             </div>
           </div>
           
           <div>
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100">
-              <h3 className="font-bold text-slate-900 mb-6">Store Details</h3>
-              <ul className="space-y-6">
-                <li className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5" />
+            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100">
+              <h3 className="font-black text-2xl text-slate-900 mb-8">Store Details</h3>
+              <ul className="space-y-8">
+                <li className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                    <MapPin className="w-7 h-7" />
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500 font-medium mb-1">Location</p>
-                    <p className="text-slate-900 font-medium">{store.location}</p>
+                  <div className="pt-1">
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">Location</p>
+                    <p className="text-slate-900 font-black text-lg">Floor {store.floor} - {store.location}</p>
                   </div>
                 </li>
-                
-                {store.phone && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                      <Phone className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 font-medium mb-1">Phone</p>
-                      <p className="text-slate-900 font-medium">{store.phone}</p>
-                    </div>
-                  </li>
-                )}
-
-                {store.website && (
-                  <li className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                      <Globe className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 font-medium mb-1">Website</p>
-                      <a href={store.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                        Visit Website
-                      </a>
-                    </div>
-                  </li>
-                )}
               </ul>
             </div>
           </div>
